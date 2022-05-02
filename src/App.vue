@@ -4,13 +4,13 @@
   <main>
     <div class="container-fluid fixedList">
       <div class="row text-start p-4 border-bottom border-2">
-        <div class="col-2"><strong>Aufruf</strong></div>
+        <div class="col-2"><strong>Ihr Aufruf</strong></div>
         <div class="col-3"><strong>Uhrzeit</strong></div>
         <div class="col-3"><strong>Dauer</strong></div>
         <div class="col-4"><strong>Raum</strong></div>
       </div>
       <div class="listGroup">
-        <TermineList />
+        <TermineList :key="componentKey" />
       </div>
     </div>
   </main>
@@ -49,6 +49,11 @@
         </div>
         <div class="modal-body">
           <form>
+            <p>
+              <button type="button" class="btn btn-light w-100 border">
+                OptiGov-Authentifizierung
+              </button>
+            </p>
             <div class="form-floating mb-3">
               <input
                 type="text"
@@ -57,7 +62,7 @@
                 placeholder="ID"
                 v-model="vid"
               />
-              <label for="floatingInput">Verwaltungs-ID</label>
+              <label for="floatingInput">ID der Verwaltung</label>
             </div>
             <div class="form-floating mb-3">
               <input
@@ -70,17 +75,6 @@
               <label for="floatingInput">Titel des Displays</label>
             </div>
 
-            <div class="form-floating mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="floatingInput"
-                placeholder="https://"
-                v-model="url"
-              />
-              <label for="floatingInput">URL-API-Schnittstelle</label>
-            </div>
-
             <div class="form-floating">
               <select
                 class="form-select"
@@ -88,55 +82,65 @@
                 aria-label="Floating label select example"
                 v-model="number"
               >
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
+                <option v-for="index in 20" :key="index" v-bind:value="index">
+                  {{ index }}
+                </option>
               </select>
-              <label for="floatingSelect">Anzahl an Termine</label>
+              <label for="floatingSelect">Anzahl an Terminen</label>
             </div>
             <br />
-            <label for="exampleColorInput" class="form-label text-start"
-              >Theme-Farbe auswählen</label
-            >
-            <input
-              type="color"
-              class="form-control form-control-color w-100"
-              id="exampleColorInput"
-              value="#ffc107"
-              title="Wähle eine Farbe aus"
-            />
+            <div class="row">
+              <div class="col-md-6">
+                <label for="exampleColorInput" class="form-label float-start"
+                  >Hintergrundfarbe auswählen</label
+                >
+                <input
+                  type="color"
+                  class="form-control form-control-color w-100"
+                  id="exampleColorInput"
+                  title="Wähle eine Hintergrundfarbe aus"
+                  v-model="color"
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="exampleColorInput" class="form-label float-start"
+                  >Textfarbe auswählen</label
+                >
+                <input
+                  type="color"
+                  class="form-control form-control-color w-100"
+                  id="exampleColorInput"
+                  title="Wähle eine Textfarbe aus"
+                  v-model="textColor"
+                />
+              </div>
+            </div>
+
             <br />
+            <label for="ColorInput" class="form-label float-start"
+              >Auswahl der Mitarbeiter
+              <!--{{ staff }}--></label
+            >
             <select
               class="form-select"
               multiple
               aria-label="multiple select example"
               v-model="staff"
             >
-              <option>Auswahl der Mitarbeiter</option>
-              <option v-for="item in mitarbeiter" :key="item.mitarbeiter.id">
-                {{ item.mitarbeiter.vorname }} {{ item.mitarbeiter.nachname }}
+              <option
+                v-for="item in mitarbeiter"
+                :key="item.id"
+                v-bind:value="item.id"
+              >
+                {{ item.name }} ({{ item.vorname }} {{ item.nachname }})
               </option>
             </select>
-            <br />
-            <p>
-              <button type="button" class="btn btn-light w-100">
-                <i class="fa-solid fa-chevrons-right"></i> OptiGov Anmeldung
-              </button>
-            </p>
           </form>
         </div>
         <div class="modal-footer">
           <button
             type="button"
             class="btn btn-dark btn-lg w-100"
-            data-bs-dismiss="modal"
             @click="storeSettings()"
           >
             Speichern
@@ -154,12 +158,6 @@ import "bootstrap/dist/js/bootstrap.min.js";
 import TermineList from "./components/TermineList.vue";
 import HeaderVue from "./components/HeaderVue.vue";
 
-//const formTitel = localStorage.setItem('titel', "Titel eingeben");
-/*const formUrl = localStorage.setItem(
-  "optigov",
-  "https://backend.optigov.de/core/api"
-);*/
-
 export default {
   name: "App",
   data() {
@@ -168,10 +166,12 @@ export default {
       mitarbeiter: [],
       url: localStorage.getItem("url"),
       titel: localStorage.getItem("titel"),
-      staff: [],
+      staff: JSON.parse(localStorage.getItem("staff")),
       vid: localStorage.getItem("vid"),
       number: localStorage.getItem("number"),
       color: localStorage.getItem("color"),
+      textColor: localStorage.getItem("textColor"),
+      componentKey: 0,
     };
   },
   components: {
@@ -191,49 +191,78 @@ export default {
     getNumber() {
       return Store.getters.getNumber();
     },
-     getColor() {
+    getColor() {
       return Store.getters.getColor();
+    },
+    getTextColor() {
+      return Store.getters.getTextColor();
+    },
+    getStaff() {
+      return Store.getters.getStaff();
     },
   },
   methods: {
+    //TerminList-Component aktualisieren
+    forceRerender() {
+      this.componentKey += 1;
+    },
+    //Daten aus dem Formular speichern
     storeSettings() {
+      //Mitarbeiterdaten aktualisieren
+      this.getMa();
+      //TerminList-Component neuladen
+      this.forceRerender();
+      //Daten speichern
       Store.mutations.setVid(this.vid);
       Store.mutations.setTitel(this.titel);
       Store.mutations.setUrl(this.url);
       Store.mutations.setNumber(this.number);
-       Store.mutations.setColor(this.color);
+      Store.mutations.setColor(this.color);
+      Store.mutations.setTextColor(this.textColor);
+      Store.mutations.setStaff(this.staff);
       this.error = false;
     },
+    async getMa() {
+      try {
+        this.mitarbeiter = [];
+        var result = await axios({
+          method: "POST",
+          url: window.config.apiUrl,
+          data: {
+            query: `
+              {
+              verwaltung(id: ${this.vid}) {
+                id
+                name
+                mitarbeiter {
+                  id
+                  vorname
+                  nachname
+                  name
+                }
+              }
+            } `,
+          },
+        });
+        this.mitarbeiter = result.data.data.verwaltung.mitarbeiter;
+        //console.log(result);
+        //console.log(this.termin);
+      } catch (error) {
+        //console.error(error);
+      }
+    },
   },
-
-  async mounted() {
-    try {
-      this.mitarbeiter = [];
-      var result = await axios({
-        method: "POST",
-        url: this.getUrl,
-        data: {
-          query: `
-                            {
-alleTerminvereinbarungen {
-   id
-   termin
-   status
-   mitarbeiter {
-     id
-     vorname
-     nachname
-   }
- }
-} `,
-        },
-      });
-      this.mitarbeiter = result.data.data.alleTerminvereinbarungen;
-      //console.log(result);
-      //console.log(this.termin);
-    } catch (error) {
-      //console.error(error);
-    }
+  beforeMount() {
+    //Initial
+    localStorage.setItem("vid", "1");
+    localStorage.setItem("titel", "Bürgerservice");
+    localStorage.setItem("color", "#A600FF");
+    localStorage.setItem("textColor", "#FFFFFF");
+    localStorage.setItem("number", "5");
+  },
+  mounted() {
+    //Daten zu Beginn abfragen
+    this.getMa();
   },
 };
 </script>

@@ -1,12 +1,12 @@
 <template>
   <header>
     <nav
-      class="navbar navbar-expand-lg fixed-top navbar-light bg-light border-bottom"
-      style="background: #ffc107 !important"
+      class="navbar navbar-expand-lg fixed-top navbar-light border-bottom"
+      :style="{ background: getColor }"
     >
       <div class="container-fluid">
         <a class="navbar-brand p-4"
-          ><h1>{{ getTitel }}</h1></a
+          ><h1 :style="{ color: getTextColor }">{{ getTitel }}</h1></a
         >
         <button
           class="navbar-toggler"
@@ -26,7 +26,7 @@
           <div class="d-flex p-4">
             <div id="clock">
               <div id="time">
-                <h1>
+                <h1 :style="{ color: getTextColor }">
                   {{ localDate }},
                   {{ localTime }}
                   Uhr
@@ -62,18 +62,23 @@ export default {
     //Datum anzeigen
     showLocaleDate: function () {
       var tag = this;
-      tag.localDate = new Date().toLocaleDateString();
+      tag.localDate = new Date().toLocaleDateString("de-DE", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
     },
   },
   computed: {
-    //Titel aus dem Store holen
+    //Titel, Hintergrund- und Textfarbe aus dem Store holen
     getTitel() {
-      //return localStorage.getItem("titel");
       return Store.getters.getTitel();
     },
     getColor() {
-      //return localStorage.getItem("titel");
       return Store.getters.getColor();
+    },
+    getTextColor() {
+      return Store.getters.getTextColor();
     },
   },
   beforeMount() {

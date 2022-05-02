@@ -12,11 +12,18 @@
       <div class="row">
         <div class="col-2">
           <h2>
-            <strong>T-0{{ item.id }}</strong>
+            <strong
+              style="padding: 10px; border-radius: 5px"
+              :style="{ color: getTextColor, background: getColor }"
+              >T-0{{ item.id }}</strong
+            >
           </h2>
         </div>
         <div class="col-3">
-          <h2>{{ changeDateFormat(item.termin) }} Uhr</h2>
+          <h2>
+            {{ changeDateFormat(item.termin) }} Uhr <br />
+            <!--{{ item.termin }}-->
+          </h2>
         </div>
         <div class="col-3">
           <h2>{{ item.dauer }} min.</h2>
@@ -39,7 +46,7 @@ export default {
   data() {
     return {
       termin: [],
-      interval: undefined,
+      staff: localStorage.getItem("staff"),
     };
   },
   methods: {
@@ -54,38 +61,38 @@ export default {
       this.termin = [];
       var result = await axios({
         method: "POST",
-        url: this.getUrl,
+        url: window.config.apiUrl,
         data: {
           query: `
-                            {
-alleTerminvereinbarungen {
-   id
-   termin
-   dauer
-   buerger_name
-   buerger_email
-   buerger_telefon
-   notiz
-   status
-   dienstleistung {
-     id
-     leistungsbezeichnung
-   }
-   mitarbeiter {
-     id
-     vorname
-     nachname
-     gebaeude{
-       name
-       strasse
-       hausnummer
-       plz
-     }
-     raum
-   }
- }
-}
-                        `,
+            {
+              alleTerminvereinbarungen {
+                id
+                termin
+                dauer
+                buerger_name
+                buerger_email
+                buerger_telefon
+                notiz
+                status
+                dienstleistung {
+                  id
+                  leistungsbezeichnung
+                }
+                mitarbeiter {
+                  id
+                  vorname
+                  nachname
+                  name
+                  gebaeude{
+                    name
+                    strasse
+                    hausnummer
+                    plz
+                  }
+                  raum
+                }
+              }
+            }`,
         },
       });
       this.termin = result.data.data.alleTerminvereinbarungen;
@@ -93,14 +100,38 @@ alleTerminvereinbarungen {
   },
   computed: {
     //Termine nach der Uhrzeit sortieren
-    sortedTermins() {
-      return this.termin.slice(0, Store.getters.getNumber()).sort((a, b) => {
-        return new Date(a.termin) - new Date(b.termin);
-      });
+    getStaff() {
+      return Store.getters.getStaff();
     },
-    //Url aus dem Store holen
-    getUrl() {
-      return Store.getters.getUrl();
+    sortedTermins() {
+      return (
+        this.termin
+          /*.filter((x) => {
+            //Nur Termine vom heutigen Tag anzeigen
+            return (
+              moment(new Date(x.termin)).format("YYYY-MM-DD") ===
+              moment(new Date("2022-03-30")).format("YYYY-MM-DD")
+            ); //x.termin
+          })*/
+          .filter((el) => {
+            //Nur die Termine von den ausgewählten Mitarbeitern ausgeben
+            return this.getStaff.includes(el.mitarbeiter.id);
+          })
+          //Anzahl an Terminen anzeigen
+          .slice(0, Store.getters.getNumber())
+          //Daten sortiert nach Uhrzeit anzeigen
+          .sort((a, b) => {
+            return new Date(a.termin) - new Date(b.termin);
+          })
+      );
+    },
+    //Hintergrundfarbe auslesen
+    getColor() {
+      return Store.getters.getColor();
+    },
+    //Textfarbe auslesen
+    getTextColor() {
+      return Store.getters.getTextColor();
     },
   },
   mounted() {
@@ -108,62 +139,14 @@ alleTerminvereinbarungen {
     this.getData();
   },
   created() {
-    //Daten im Intervall alle 5 Minuten abfragen
+    //Daten im Intervall alle 5 Minuten (= 300000 Milisekunden) abfragen
     setInterval(
       function () {
         return this.getData();
       }.bind(this),
-      50000
+      300000
     );
   },
-
-  //Daten aus der Datenquelle abfragen
-  /*async mounted() {
-    try {
-      this.termin = [];
-      var result = await axios({
-        method: "POST",
-        url: this.getUrl,
-        data: {
-          query: `
-                            {
-alleTerminvereinbarungen {
-   id
-   termin
-   dauer
-   buerger_name
-   buerger_email
-   buerger_telefon
-   notiz
-   status
-   dienstleistung {
-     id
-     leistungsbezeichnung
-   }
-   mitarbeiter {
-     id
-     vorname
-     nachname
-     gebaeude{
-       name
-       strasse
-       hausnummer
-       plz
-     }
-     raum
-   }
- }
-}
-                        `,
-        },
-      });
-      this.termin = result.data.data.alleTerminvereinbarungen;
-      //console.log(result);
-      //console.log(this.termin);
-    } catch (error) {
-      //console.error(error);
-    }
-  },*/
 };
 </script>
 
