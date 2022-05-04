@@ -2,36 +2,34 @@
   <header>
     <nav
       class="navbar navbar-expand-lg fixed-top navbar-light border-bottom"
+      style="height: 120px"
       :style="{ background: getColor }"
     >
       <div class="container-fluid">
         <a class="navbar-brand p-4"
-          ><h1 :style="{ color: getTextColor }">{{ getTitel }}</h1></a
+          ><h1
+            :style="{ color: getTextColor, 'font-size': getTextSize + 'rem' }"
+          >
+            {{ getTitel }}
+          </h1></a
         >
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"></li>
-          </ul>
-          <div class="d-flex p-4">
-            <div id="clock">
-              <div id="time">
-                <h1 :style="{ color: getTextColor }">
-                  {{ localDate }},
-                  {{ localTime }}
-                  Uhr
-                </h1>
-              </div>
+
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"></li>
+        </ul>
+        <div class="d-flex p-4 d-none d-lg-block">
+          <div id="clock">
+            <div id="time">
+              <h1
+                :style="{
+                  color: getTextColor,
+                  'font-size': getTextSize + 'rem',
+                }"
+              >
+                {{ localDate }},
+                {{ localTime }}
+                Uhr
+              </h1>
             </div>
           </div>
         </div>
@@ -49,6 +47,7 @@ export default {
     return {
       localTime: "",
       localDate: "",
+      textSize: localStorage.getItem("textSize"),
     };
   },
   methods: {
@@ -79,6 +78,11 @@ export default {
     },
     getTextColor() {
       return Store.getters.getTextColor();
+    },
+    getTextSize() {
+      var size = Store.getters.getTextSize();
+      var resu = parseInt(size) + 0.5;
+      return resu;
     },
   },
   beforeMount() {

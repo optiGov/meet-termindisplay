@@ -4,10 +4,11 @@
   <main>
     <div class="container-fluid fixedList">
       <div class="row text-start p-4 border-bottom border-2">
-        <div class="col-2"><strong>Ihr Aufruf</strong></div>
-        <div class="col-3"><strong>Uhrzeit</strong></div>
-        <div class="col-3"><strong>Dauer</strong></div>
-        <div class="col-4"><strong>Raum</strong></div>
+        <div class="col-2" style="padding-left:25px;"><strong>Ihr Aufruf</strong></div>
+        <div class="col-2" style="padding-left:20px;"><strong>Uhrzeit</strong></div>
+        <div class="col-2" style="padding-left:20px;"><strong>Dauer</strong></div>
+        <div class="col-3" style="padding-left:12px;"><strong>Raum</strong></div>
+        <div class="col-3" style="padding-left:5px;"><strong>Dienstleistung</strong></div>
       </div>
       <div class="listGroup">
         <TermineList :key="componentKey" />
@@ -38,7 +39,7 @@
   >
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-dark text-white">
+        <div class="modal-header bg-optigov text-white">
           <h5 class="modal-title" id="staticBackdropLabel">Einstellungen</h5>
           <button
             type="button"
@@ -89,6 +90,21 @@
               <label for="floatingSelect">Anzahl an Terminen</label>
             </div>
             <br />
+            <div class="form-floating">
+              <select
+                class="form-select"
+                id="floatingSelect"
+                aria-label="Floating label select example"
+                v-model="textSize"
+              >
+                <option value="1.0">Stufe 1</option>
+                <option value="1.5">Stufe 2</option>
+                <option value="2.0">Stufe 3</option>
+                <option value="2.5">Stufe 4</option>
+              </select>
+              <label for="floatingSelect">Schriftgröße auswählen</label>
+            </div>
+            <br />
             <div class="row">
               <div class="col-md-6">
                 <label for="exampleColorInput" class="form-label float-start"
@@ -132,7 +148,7 @@
                 :key="item.id"
                 v-bind:value="item.id"
               >
-                {{ item.name }} ({{ item.vorname }} {{ item.nachname }})
+                {{ item.anrede.name }} {{ item.vorname }} {{ item.nachname }}
               </option>
             </select>
           </form>
@@ -140,7 +156,7 @@
         <div class="modal-footer">
           <button
             type="button"
-            class="btn btn-dark btn-lg w-100"
+            class="btn bg-optigov btn-lg w-100 text-white"
             @click="storeSettings()"
           >
             Speichern
@@ -171,6 +187,7 @@ export default {
       number: localStorage.getItem("number"),
       color: localStorage.getItem("color"),
       textColor: localStorage.getItem("textColor"),
+      textSize: localStorage.getItem("textSize"),
       componentKey: 0,
     };
   },
@@ -197,6 +214,9 @@ export default {
     getTextColor() {
       return Store.getters.getTextColor();
     },
+    getTextSize() {
+      return Store.getters.getTextSize();
+    },
     getStaff() {
       return Store.getters.getStaff();
     },
@@ -219,6 +239,7 @@ export default {
       Store.mutations.setNumber(this.number);
       Store.mutations.setColor(this.color);
       Store.mutations.setTextColor(this.textColor);
+      Store.mutations.setTextSize(this.textSize);
       Store.mutations.setStaff(this.staff);
       this.error = false;
     },
@@ -239,6 +260,10 @@ export default {
                   vorname
                   nachname
                   name
+                  anrede {
+                    id
+                    name
+                  }
                 }
               }
             } `,
@@ -256,8 +281,9 @@ export default {
     //Initial
     localStorage.setItem("vid", "1");
     localStorage.setItem("titel", "Bürgerservice");
-    localStorage.setItem("color", "#A600FF");
+    localStorage.setItem("color", "#506de2");
     localStorage.setItem("textColor", "#FFFFFF");
+    localStorage.setItem("textSize", "2.0");
     localStorage.setItem("number", "5");
   },
   mounted() {
@@ -272,27 +298,174 @@ export default {
 @import "~@fortawesome/fontawesome-free/css/all.min.css";
 
 @font-face {
-  font-family: "gotoMEDIA";
-  src: url("assets/webfonts/gotoMEDIA/gotoMEDIA.eot?5fw36d");
-  src: url("assets/webfonts/gotoMEDIA/gotoMEDIA.eot?#iefix5fw36d")
-      format("embedded-opentype"),
-    url("assets/webfonts/gotoMEDIA/gotoMEDIA.woff?5fw36d") format("woff"),
-    url("assets/webfonts/gotoMEDIA/gotoMEDIA.ttf?5fw36d") format("truetype"),
-    url("assets/webfonts/gotoMEDIA/gotoMEDIA.svg") format("svg");
-  font-weight: normal;
+  font-family: Rubik;
   font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Light.a511edd8.ttf);
+  unicode-range: U+0900-097f, U+1cd0-1cf6, U+1cf8-1cf9, U+200c-200d, U+20a8,
+    U+20b9, U+25cc, U+a830-a839, U+a8e0-a8fb;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Light.a511edd8.ttf);
+  unicode-range: U+0100-024f, U+0259, U+1e??, U+2020, U+20a0-20ab, U+20ad-20cf,
+    U+2113, U+2c60-2c7f, U+a720-a7ff;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Light.a511edd8.ttf);
+  unicode-range: U+00??, U+0131, U+0152-0153, U+02bb-02bc, U+02c6, U+02da,
+    U+02dc, U+2000-206f, U+2074, U+20ac, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+feff, U+fffd;
+}
+
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Regular.4b3f0681.ttf);
+  unicode-range: U+0900-097f, U+1cd0-1cf6, U+1cf8-1cf9, U+200c-200d, U+20a8,
+    U+20b9, U+25cc, U+a830-a839, U+a8e0-a8fb;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Regular.4b3f0681.ttf);
+  unicode-range: U+0100-024f, U+0259, U+1e??, U+2020, U+20a0-20ab, U+20ad-20cf,
+    U+2113, U+2c60-2c7f, U+a720-a7ff;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Regular.4b3f0681.ttf);
+  unicode-range: U+00??, U+0131, U+0152-0153, U+02bb-02bc, U+02c6, U+02da,
+    U+02dc, U+2000-206f, U+2074, U+20ac, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+feff, U+fffd;
+}
+
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Medium.6fa3da85.ttf);
+  unicode-range: U+0900-097f, U+1cd0-1cf6, U+1cf8-1cf9, U+200c-200d, U+20a8,
+    U+20b9, U+25cc, U+a830-a839, U+a8e0-a8fb;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Medium.6fa3da85.ttf);
+  unicode-range: U+0100-024f, U+0259, U+1e??, U+2020, U+20a0-20ab, U+20ad-20cf,
+    U+2113, U+2c60-2c7f, U+a720-a7ff;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Medium.6fa3da85.ttf);
+  unicode-range: U+00??, U+0131, U+0152-0153, U+02bb-02bc, U+02c6, U+02da,
+    U+02dc, U+2000-206f, U+2074, U+20ac, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+feff, U+fffd;
+}
+
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-SemiBold.a840e539.ttf);
+  unicode-range: U+0900-097f, U+1cd0-1cf6, U+1cf8-1cf9, U+200c-200d, U+20a8,
+    U+20b9, U+25cc, U+a830-a839, U+a8e0-a8fb;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-SemiBold.a840e539.ttf);
+  unicode-range: U+0100-024f, U+0259, U+1e??, U+2020, U+20a0-20ab, U+20ad-20cf,
+    U+2113, U+2c60-2c7f, U+a720-a7ff;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-SemiBold.a840e539.ttf);
+  unicode-range: U+00??, U+0131, U+0152-0153, U+02bb-02bc, U+02c6, U+02da,
+    U+02dc, U+2000-206f, U+2074, U+20ac, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+feff, U+fffd;
+}
+
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Bold.11598c28.ttf);
+  unicode-range: U+0900-097f, U+1cd0-1cf6, U+1cf8-1cf9, U+200c-200d, U+20a8,
+    U+20b9, U+25cc, U+a830-a839, U+a8e0-a8fb;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Bold.11598c28.ttf);
+  unicode-range: U+0100-024f, U+0259, U+1e??, U+2020, U+20a0-20ab, U+20ad-20cf,
+    U+2113, U+2c60-2c7f, U+a720-a7ff;
+}
+@font-face {
+  font-family: Rubik;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(assets/fonts/Rubik-Bold.11598c28.ttf);
+  unicode-range: U+00??, U+0131, U+0152-0153, U+02bb-02bc, U+02c6, U+02da,
+    U+02dc, U+2000-206f, U+2074, U+20ac, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+feff, U+fffd;
 }
 
 #app {
-  font-family: "gotoMEDIA", sans-serif;
+  font-family: Rubik, -apple-system, system-ui, BlinkMacSystemFont, Segoe UI,
+    Roboto, Helvetica Neue, Arial, sans-serif;
+  font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #000;
 }
 
+strong {
+  font-weight:600;
+}
+
+h1 {
+  font-weight: 500;
+}
+
+h2 {
+  font-weight: 400;
+}
+
 .navbar-brand h1 {
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   font-stretch: expanded;
 }
 
@@ -343,5 +516,9 @@ ul.list-group.list-group-striped li:nth-of-type(even) {
   right: 0;
   bottom: 0;
   padding: 0;
+}
+
+.bg-optigov {
+  background: #506de2;
 }
 </style>

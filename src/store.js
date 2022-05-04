@@ -25,6 +25,7 @@ const state = reactive({
   number: localStorage.getItem("number"),
   color: localStorage.getItem("color"),
   textColor: localStorage.getItem("textColor"),
+  textSize: localStorage.getItem("textSize"),
 });
 
 const getters = {
@@ -34,6 +35,7 @@ const getters = {
   getNumber: () => state.number,
   getColor: () => state.color,
   getTextColor: () => state.textColor,
+  getTextSize: () => state.textSize,
   getStaff() {
     if (localStorage.getItem("staff") === "") {
       return
@@ -67,6 +69,10 @@ const mutations = {
   setTextColor(name) {
     localStorage.setItem("textColor", name);
     state.textColor = name;
+  },
+  setTextSize(name) {
+    localStorage.setItem("textSize", name);
+    state.textSize = name;
   },
   setStaff(name) {
     localStorage.setItem("staff", JSON.stringify(name));

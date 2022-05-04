@@ -11,25 +11,28 @@
     >
       <div class="row">
         <div class="col-2">
-          <h2>
-            <strong
-              style="padding: 10px; border-radius: 5px"
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }">
+            <span
+              style="font-weight:500; padding: 10px; border-radius: 5px"
               :style="{ color: getTextColor, background: getColor }"
-              >T-0{{ item.id }}</strong
+              >T-0{{ item.id }}</span
             >
           </h2>
         </div>
-        <div class="col-3">
-          <h2>
+        <div class="col-2">
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }">
             {{ changeDateFormat(item.termin) }} Uhr <br />
             <!--{{ item.termin }}-->
           </h2>
         </div>
-        <div class="col-3">
-          <h2>{{ item.dauer }} min.</h2>
+        <div class="col-2">
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }">{{ item.dauer }} min.</h2>
         </div>
-        <div class="col-4">
-          <h2>{{ item.mitarbeiter.raum }}</h2>
+        <div class="col-3">
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }" class="over">{{ item.mitarbeiter.raum }}</h2>
+        </div>
+        <div class="col-3">
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }" class="over">{{ item.dienstleistung.leistungsbezeichnung }}</h2>
         </div>
       </div>
     </li>
@@ -133,6 +136,10 @@ export default {
     getTextColor() {
       return Store.getters.getTextColor();
     },
+     //Textgröße auslesen
+    getTextSize() {
+      return Store.getters.getTextSize();
+    },
   },
   mounted() {
     //Daten zu Beginn abfragen
@@ -166,5 +173,12 @@ export default {
 
 .list-leave-active {
   position: absolute;
+}
+
+.over {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow:ellipsis;
+  max-width: 250px;
 }
 </style>
