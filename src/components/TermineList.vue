@@ -42,6 +42,7 @@
         </div>
       </div>
     </li>
+    <li v-if="!sortedTermins.length" class="p-5">Keine Termine gefunden</li>
   </TransitionGroup>
 </template>
 
