@@ -13,7 +13,7 @@
         <div class="col-2">
           <h2 :style="{ 'font-size': getTextSize + 'rem' }">
             <span
-              style="font-weight:500; padding: 10px; border-radius: 5px"
+              style="font-weight: 500; padding: 10px; border-radius: 5px"
               :style="{ color: getTextColor, background: getColor }"
               >T-0{{ item.id }}</span
             >
@@ -21,18 +21,24 @@
         </div>
         <div class="col-2">
           <h2 :style="{ 'font-size': getTextSize + 'rem' }">
-            {{ changeDateFormat(item.termin) }} Uhr <br />
+            {{ changeDateFormat(item.termin) }} Uhr
             <!--{{ item.termin }}-->
           </h2>
         </div>
         <div class="col-2">
-          <h2 :style="{ 'font-size': getTextSize + 'rem' }">{{ item.dauer }} min.</h2>
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }">
+            {{ item.dauer }} min.
+          </h2>
         </div>
         <div class="col-3">
-          <h2 :style="{ 'font-size': getTextSize + 'rem' }" class="over">{{ item.mitarbeiter.raum }}</h2>
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }" class="over">
+            {{ item.mitarbeiter.raum }}
+          </h2>
         </div>
         <div class="col-3">
-          <h2 :style="{ 'font-size': getTextSize + 'rem' }" class="over">{{ item.dienstleistung.leistungsbezeichnung }}</h2>
+          <h2 :style="{ 'font-size': getTextSize + 'rem' }" class="over">
+            {{ item.dienstleistung.leistungsbezeichnung }}
+          </h2>
         </div>
       </div>
     </li>
@@ -56,7 +62,7 @@ export default {
     //Datum aus der Datenquelle anpassen und nur die Uhrzeit ausgeben
     changeDateFormat(value) {
       if (value) {
-        return moment(String(value)).format("hh:mm");
+        return moment(value).format("HH:MM");
       }
     },
     //Daten aus der API abholen und speichern
@@ -109,13 +115,18 @@ export default {
     sortedTermins() {
       return (
         this.termin
-          /*.filter((x) => {
-            //Nur Termine vom heutigen Tag anzeigen
+          .filter((x) => {
             return (
+              //ist das Datum des Termins = mit dem heutigen Datum?
               moment(new Date(x.termin)).format("YYYY-MM-DD") ===
-              moment(new Date("2022-03-30")).format("YYYY-MM-DD")
-            ); //x.termin
-          })*/
+              moment(new Date()).format("YYYY-MM-DD") &&
+                //Ist die Uhrzeit des Termins größer als die aktuelle Uhrzeit
+             moment(new Date()).isBetween(
+                moment(new Date()).format("YYYY-MM-DD, HH:MM"), 
+                moment(new Date(x.termin)).add(x.dauer, "minutes").format("YYYY-MM-DD, HH:MM")
+              )
+            );
+          })
           .filter((el) => {
             //Nur die Termine von den ausgewählten Mitarbeitern ausgeben
             return this.getStaff.includes(el.mitarbeiter.id);
@@ -136,7 +147,7 @@ export default {
     getTextColor() {
       return Store.getters.getTextColor();
     },
-     //Textgröße auslesen
+    //Textgröße auslesen
     getTextSize() {
       return Store.getters.getTextSize();
     },
@@ -149,7 +160,8 @@ export default {
     //Daten im Intervall alle 5 Minuten (= 300000 Milisekunden) abfragen
     setInterval(
       function () {
-        return this.getData();
+        this.getData();
+         this.sortedTermins();
       }.bind(this),
       300000
     );
@@ -178,7 +190,7 @@ export default {
 .over {
   overflow: hidden;
   white-space: nowrap;
-  text-overflow:ellipsis;
+  text-overflow: ellipsis;
   max-width: 250px;
 }
 </style>
