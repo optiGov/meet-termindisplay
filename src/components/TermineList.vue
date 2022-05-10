@@ -42,7 +42,13 @@
         </div>
       </div>
     </li>
-    <li v-if="!sortedTermins.length" class="p-5">Keine Termine gefunden</li>
+    <li
+      v-if="!sortedTermins.length"
+      class="p-5"
+      :style="{ 'font-size': getTextSize + 'rem' }"
+    >
+      Keine bevorstehenden Termine
+    </li>
   </TransitionGroup>
 </template>
 
@@ -63,7 +69,7 @@ export default {
     //Datum aus der Datenquelle anpassen und nur die Uhrzeit ausgeben
     changeDateFormat(value) {
       if (value) {
-        return moment(value).format("HH:MM");
+        return moment(String(value)).format("HH:mm");
       }
     },
     //Daten aus der API abholen und speichern
@@ -120,12 +126,15 @@ export default {
             return (
               //ist das Datum des Termins = mit dem heutigen Datum?
               moment(new Date(x.termin)).format("YYYY-MM-DD") ===
-              moment(new Date()).format("YYYY-MM-DD") &&
-                //Ist die Uhrzeit des Termins größer als die aktuelle Uhrzeit
-             moment(new Date()).isBetween(
-                moment(new Date()).format("YYYY-MM-DD, HH:MM"), 
-                moment(new Date(x.termin)).add(x.dauer, "minutes").format("YYYY-MM-DD, HH:MM")
-              )
+                moment(new Date()).format("YYYY-MM-DD") &&
+              //Ist die Uhrzeit des Termins größer als die aktuelle Uhrzeit
+              moment(new Date()).isBetween(
+                moment(new Date()).format("YYYY-MM-DD, HH:mm"),
+                moment(new Date(x.termin))
+                  .add(x.dauer, "minutes")
+                  .format("YYYY-MM-DD, HH:mm")
+              ) &&
+              x.status === "BESTAETIGT"
             );
           })
           .filter((el) => {
@@ -162,7 +171,7 @@ export default {
     setInterval(
       function () {
         this.getData();
-         this.sortedTermins();
+        this.sortedTermins();
       }.bind(this),
       300000
     );
