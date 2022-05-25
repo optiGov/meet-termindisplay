@@ -1,7 +1,7 @@
 <template>
   <header>
     <nav
-      class="navbar navbar-expand-lg fixed-top navbar-light border-bottom"
+      class="navbar navbar-expand-lg fixed-top navbar-optigov border-bottom"
       style="height: 120px"
       :style="{ background: getColor }"
     >
@@ -51,7 +51,7 @@ export default {
     };
   },
   methods: {
-    //Uhrzeit anzeigen
+     //Uhrzeit anzeigen
     showLocaleTime: function () {
       var time = this;
       setInterval(function () {
@@ -93,4 +93,9 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.navbar-optigov {
+  background: #506de2;
+  color: #fff;
+}
+</style>

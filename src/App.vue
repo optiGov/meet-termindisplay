@@ -4,11 +4,21 @@
   <main>
     <div class="container-fluid fixedList">
       <div class="row text-start p-4 border-bottom border-2">
-        <div class="col-2" style="padding-left:25px;"><strong>Ihr Aufruf</strong></div>
-        <div class="col-2" style="padding-left:20px;"><strong>Uhrzeit</strong></div>
-        <div class="col-2" style="padding-left:20px;"><strong>Dauer</strong></div>
-        <div class="col-3" style="padding-left:12px;"><strong>Raum</strong></div>
-        <div class="col-3" style="padding-left:5px;"><strong>Dienstleistung</strong></div>
+        <div class="col-2" style="padding-left: 25px">
+          <strong>Ihr Aufruf</strong>
+        </div>
+        <div class="col-2" style="padding-left: 20px">
+          <strong>Uhrzeit</strong>
+        </div>
+        <div class="col-2" style="padding-left: 20px">
+          <strong>Dauer</strong>
+        </div>
+        <div class="col-3" style="padding-left: 12px">
+          <strong>Raum</strong>
+        </div>
+        <div class="col-3" style="padding-left: 5px">
+          <strong>Dienstleistung</strong>
+        </div>
       </div>
       <div class="listGroup">
         <TermineList :key="componentKey" />
@@ -51,9 +61,15 @@
         <div class="modal-body">
           <form>
             <p>
-              <button type="button" class="btn btn-light w-100 border">
+              <button
+                type="button"
+                class="btn btn-light w-100 border"
+                @click="authApp()"
+                v-if="loggedIn == 'false'"
+              >
                 OptiGov-Authentifizierung
               </button>
+              <strong>Auth-Status: {{ loggedIn }}</strong>
             </p>
             <div class="form-floating mb-3">
               <input
@@ -170,9 +186,13 @@
 <script>
 import axios from "axios";
 import Store from "./store";
+import moment from "moment";
 import "bootstrap/dist/js/bootstrap.min.js";
 import TermineList from "./components/TermineList.vue";
 import HeaderVue from "./components/HeaderVue.vue";
+import Str from "./Str";
+import Base64 from "./base64";
+import SHA256 from "./SHA256";
 
 export default {
   name: "App",
@@ -189,6 +209,9 @@ export default {
       textColor: localStorage.getItem("textColor"),
       textSize: localStorage.getItem("textSize"),
       componentKey: 0,
+      accessToken: localStorage.getItem("oauthAccessToken"),
+      refreshToken: localStorage.getItem("oauthRefreshToken"),
+      loggedIn: localStorage.getItem("loggedIn"),
     };
   },
   components: {
@@ -222,6 +245,100 @@ export default {
     },
   },
   methods: {
+    async getParams() {
+      //Parameter aus der URL ermitteln
+      const url = new URL(window.location.href);
+      const params = new URLSearchParams(url.search);
+      const getcode = params.get("code");
+      const getstate = params.get("state");
+
+      //Überprüfen ob ein Wert übergeben wurde
+      if (getcode === "") {
+        console.log("");
+      } else {
+        //Wenn ja weiter
+        //Überprüfen ob die erlangten Daten zu den bisher gespeicherten passen
+        const vglstate = Store.getters.getOAuthState();
+        //Wenn die Daten passen dann POST-Request an die Token-URL senden
+        // check if state is equal the stored state
+        if (getstate === vglstate) {
+
+          // destroy state
+          Store.mutations.setOAuthState("");
+
+          // load code verifier
+          const codeVerifier = Store.getters.getOAuthCodeVerifier();
+
+          // create redirect url
+          const redirectUrl =
+            location.protocol + "//" + location.host + location.pathname;
+
+          // get tokens by oauth code
+          const response = await axios.post(
+            window.config.oauth.endpoints.token,
+            {
+              grant_type: "authorization_code",
+              client_id: 6,
+              redirect_uri: redirectUrl,
+              code_verifier: codeVerifier,
+              code: getcode,
+            }
+          ); //Ende Axios
+
+          const accesstoken = response.data.access_token;
+          const refreshtoken = response.data.refresh_token;
+          const expiredate = moment(new Date())
+            .add("60", "seconds")
+            .format("YYYY-MM-DD, HH:mm:ss"); //Ablaufdatum setzen und speichern
+
+          Store.mutations.setOAuthAccessToken(accesstoken);
+          Store.mutations.setOAuthRefreshToken(refreshtoken);
+          Store.mutations.setOAuthExpireDate(expiredate);
+          Store.mutations.setLoggedIn("false");
+          console.log(this.loggedIn);
+
+          this.forceRerender();
+        } 
+      } // Ende if empty
+    },
+    //Authentificationprocess on OptiGov
+    async authApp() {
+      /// generate state
+      const statee = Str.random(40);
+      Store.mutations.setOAuthState(statee);
+      console.log(statee);
+
+      // generate code verifier
+      const codeVerifier = Str.random(128);
+      Store.mutations.setOAuthCodeVerifier(codeVerifier);
+
+      // create code challenge
+      const codeChallenge = Base64.encode(await SHA256.hash(codeVerifier));
+
+      // create redirect url
+      const redirectUrl =
+        location.protocol + "//" + location.host + location.pathname;
+
+      // set url in body
+      this.url =
+        window.config.oauth.endpoints.authorize +
+        "?client_id=" +
+        6 + //Client ID
+        "&redirect_uri=" +
+        encodeURIComponent(redirectUrl) +
+        "&response_type=code" +
+        "&scope=" +
+        encodeURIComponent("terminvereinbarung.readonly") +
+        "&state=" +
+        statee +
+        "&code_challenge=" +
+        codeChallenge +
+        "&code_challenge_method=" +
+        "S256";
+
+      // redirect to url
+      window.location.href = this.url;
+    },
     //TerminList-Component aktualisieren
     forceRerender() {
       this.componentKey += 1;
@@ -268,6 +385,7 @@ export default {
               }
             } `,
           },
+          headers: { Authorization: `Bearer ${this.accessToken}` },
         });
         this.mitarbeiter = result.data.data.verwaltung.mitarbeiter;
         //console.log(result);
@@ -277,18 +395,26 @@ export default {
       }
     },
   },
-  beforeMount() {
+  beforeCreate() {
     //Initial
+    if(this.loggedIn){console.log("Error LoggedIn");}else{localStorage.setItem("loggedIn", "false");}
     localStorage.setItem("vid", "1");
     localStorage.setItem("titel", "Bürgerservice");
     localStorage.setItem("color", "#506de2");
     localStorage.setItem("textColor", "#FFFFFF");
     localStorage.setItem("textSize", "2.0");
     localStorage.setItem("number", "5");
+    this.textColor = "#FFFFFF";
+    this.textSize = "2.0";
+    this.color = "#506de2";
+    this.number = "5";
+    this.titel = "Bürgerservice";
+    this.vid = "1";
   },
   mounted() {
     //Daten zu Beginn abfragen
     this.getMa();
+    this.getParams();
   },
 };
 </script>
@@ -453,7 +579,7 @@ export default {
 }
 
 strong {
-  font-weight:600;
+  font-weight: 600;
 }
 
 h1 {

@@ -63,9 +63,16 @@ export default {
     return {
       termin: [],
       staff: localStorage.getItem("staff"),
+      accessToken: localStorage.getItem("oauthAccessToken"),
+      refreshToken: localStorage.getItem("oauthRefreshToken"),
+      expireDate: localStorage.getItem("oauthExpireDate"),
+      componentKey: 0,
     };
   },
   methods: {
+    forceRerender() {
+      this.componentKey += 1;
+    },
     //Datum aus der Datenquelle anpassen und nur die Uhrzeit ausgeben
     changeDateFormat(value) {
       if (value) {
@@ -74,12 +81,41 @@ export default {
     },
     //Daten aus der API abholen und speichern
     async getData() {
-      this.termin = [];
-      var result = await axios({
-        method: "POST",
-        url: window.config.apiUrl,
-        data: {
-          query: `
+      if (
+        moment(new Date()).format("YYYY-MM-DD, HH:mm:ss") >=
+        moment(this.expireDate).format("YYYY-MM-DD, HH:mm:ss")
+      ) {
+        //Wenn Token nicht gültig, dann neuen Token generieren
+        Store.mutations.setLoggedIn("false");
+
+        // get tokens by oauth code
+        const response = await axios.post(window.config.oauth.endpoints.token, {
+          grant_type: "refresh_token",
+          client_id: 6,
+          refresh_token: this.refreshToken,
+        }); //Ende Axios
+
+        const accesstoken = response.data.access_token;
+        const refreshtoken = response.data.refresh_token;
+        const expiredate = moment(new Date())
+          .add("60", "seconds")
+          .format("YYYY-MM-DD, HH:mm:ss"); //Ablaufdatum setzen und speichern
+
+        Store.mutations.setOAuthAccessToken(accesstoken);
+        Store.mutations.setOAuthRefreshToken(refreshtoken);
+        Store.mutations.setOAuthExpireDate(expiredate);
+        this.forceRerender();
+      } else {
+        if (this.expireDate === "") {
+          console.log("expireDate empty");
+        } else {
+          //Wenn Token noch gültig dann Daten abholen
+          this.termin = [];
+          var result = await axios({
+            method: "POST",
+            url: window.config.apiUrl,
+            data: {
+              query: `
             {
               alleTerminvereinbarungen {
                 id
@@ -109,9 +145,12 @@ export default {
                 }
               }
             }`,
-        },
-      });
-      this.termin = result.data.data.alleTerminvereinbarungen;
+            },
+            headers: { Authorization: `Bearer ${this.accessToken}` },
+          });
+          this.termin = result.data.data.alleTerminvereinbarungen;
+        } //if empty
+      } // if expired
     },
   },
   computed: {
@@ -120,34 +159,40 @@ export default {
       return Store.getters.getStaff();
     },
     sortedTermins() {
-      return (
-        this.termin
-          .filter((x) => {
-            return (
-              //ist das Datum des Termins = mit dem heutigen Datum?
-              moment(new Date(x.termin)).format("YYYY-MM-DD") ===
-                moment(new Date()).format("YYYY-MM-DD") &&
-              //Ist die Uhrzeit des Termins größer als die aktuelle Uhrzeit
-              moment(new Date()).isBetween(
-                moment(new Date()).format("YYYY-MM-DD, HH:mm"),
-                moment(new Date(x.termin))
-                  .add(x.dauer, "minutes")
-                  .format("YYYY-MM-DD, HH:mm")
-              ) &&
-              x.status === "BESTAETIGT"
-            );
-          })
-          .filter((el) => {
-            //Nur die Termine von den ausgewählten Mitarbeitern ausgeben
-            return this.getStaff.includes(el.mitarbeiter.id);
-          })
-          //Anzahl an Terminen anzeigen
-          .slice(0, Store.getters.getNumber())
-          //Daten sortiert nach Uhrzeit anzeigen
-          .sort((a, b) => {
-            return new Date(a.termin) - new Date(b.termin);
-          })
-      );
+      //Prüfen ob Einträge vorhanden, wenn nicht dann
+      if (this.termin === "") {
+        return "Keine Einträge";
+      } else {
+        //Wenn Einträge vorhanden, diese holen, filtern und sortieren
+        return (
+          this.termin
+            .filter((x) => {
+              return (
+                //ist das Datum des Termins = mit dem heutigen Datum?
+                moment(new Date(x.termin)).format("YYYY-MM-DD") ===
+                  moment(new Date()).format("YYYY-MM-DD") &&
+                //Ist die Uhrzeit des Termins größer als die aktuelle Uhrzeit
+                moment(new Date()).isBetween(
+                  moment(new Date()).format("YYYY-MM-DD, HH:mm"),
+                  moment(new Date(x.termin))
+                    .add(x.dauer, "minutes")
+                    .format("YYYY-MM-DD, HH:mm")
+                ) &&
+                x.status === "BESTAETIGT"
+              );
+            })
+            .filter((el) => {
+              //Nur die Termine von den ausgewählten Mitarbeitern ausgeben
+              return this.getStaff.includes(el.mitarbeiter.id);
+            })
+            //Anzahl an Terminen anzeigen
+            .slice(0, Store.getters.getNumber())
+            //Daten sortiert nach Uhrzeit anzeigen
+            .sort((a, b) => {
+              return new Date(a.termin) - new Date(b.termin);
+            })
+        );
+      }//Ende if empty
     },
     //Hintergrundfarbe auslesen
     getColor() {

@@ -2,17 +2,17 @@ import { reactive, readonly } from "vue";
 
 // global project config
 window.config = {
-  apiUrl: window.webpackHotUpdate
-    ? "https://backend.optigov.de/core/api"
-    : "https://backend.optigov.de/core/api",
+  apiUrl: process.env.NODE_ENV === "development"
+    ? "https://demo.optigov.de/api"
+    : "/api", // /api
   oauth: {
     endpoints: {
-      authorize: window.webpackHotUpdate
+      authorize: process.env.NODE_ENV === "development"
         ? "https://demo.optigov.de/oauth/authorize"
-        : "/oauth/authorize",
-      token: window.webpackHotUpdate
+        : "/oauth/authorize", ///oauth/authorize
+      token: process.env.NODE_ENV === "development"
         ? "https://demo.optigov.de/oauth/token"
-        : "/oauth/token",
+        : "/oauth/token", // /oauth/token
     },
   },
 };
@@ -26,7 +26,14 @@ const state = reactive({
   color: localStorage.getItem("color"),
   textColor: localStorage.getItem("textColor"),
   textSize: localStorage.getItem("textSize"),
-});
+  //for oAuth
+  oauthState: localStorage.getItem("oauthState"),
+  oauthCodeVerifier: localStorage.getItem("oauthCodeVerifier"),
+  oauthAccessToken: localStorage.getItem("oauthAccessToken"),
+  oauthRefreshToken: localStorage.getItem("oauthRefreshToken"),
+  oauthExpireDate: localStorage.getItem("oauthExpireDate"),
+  loggedIn: localStorage.getItem("loggedIn"),
+ });
 
 const getters = {
   getTitel: () => state.titel,
@@ -43,6 +50,13 @@ const getters = {
       return JSON.parse(localStorage.getItem("staff"));
     }
   },
+  //for oAuth
+  getOAuthState: () => state.oauthState,
+  getOAuthCodeVerifier: () => state.oauthCodeVerifier,
+  getOAuthAccessToken: () => state.oauthAccessToken,
+  getOAuthRefreshToken: () => state.oauthRefreshToken,
+  getOAuthExpireDate: () => state.oauthExpireDate,
+  getLoggedIn: () => state.loggedIn,
 };
 
 const mutations = {
@@ -77,6 +91,31 @@ const mutations = {
   setStaff(name) {
     localStorage.setItem("staff", JSON.stringify(name));
     state.staff = name;
+  },
+  //for OAuth
+  setOAuthState(name) {
+    localStorage.setItem("oauthState", name);
+    state.oauthState = name;
+  },
+  setOAuthCodeVerifier(name) {
+    localStorage.setItem("oauthCodeVerifier", name);
+    state.oauthCodeVerifier = name;
+  },
+  setOAuthAccessToken(name) {
+    localStorage.setItem("oauthAccessToken", name);
+    state.oauthAccessToken = name;
+  },
+  setOAuthRefreshToken(name) {
+    localStorage.setItem("oauthRefreshToken", name);
+    state.oauthRefreshToken = name;
+  },
+  setOAuthExpireDate(name) {
+    localStorage.setItem("oauthExpireDate", name);
+    state.oauthExpireDate = name;
+  },
+  setLoggedIn(name) {
+    localStorage.setItem("loggedIn", name);
+    state.loggedIn = name;
   },
 };
 
