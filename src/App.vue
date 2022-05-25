@@ -65,7 +65,7 @@
                 type="button"
                 class="btn btn-light w-100 border"
                 @click="authApp()"
-                v-if="loggedIn == 'false'"
+                v-if="!loggedIn || !loggedIn.length"
               >
                 OptiGov-Authentifizierung
               </button>
@@ -294,7 +294,8 @@ export default {
           Store.mutations.setOAuthAccessToken(accesstoken);
           Store.mutations.setOAuthRefreshToken(refreshtoken);
           Store.mutations.setOAuthExpireDate(expiredate);
-          Store.mutations.setLoggedIn("false");
+          Store.mutations.setLoggedIn("true");
+          this.loggedIn = "true";
           console.log(this.loggedIn);
 
           this.forceRerender();
@@ -397,7 +398,6 @@ export default {
   },
   beforeCreate() {
     //Initial
-    if(this.loggedIn){console.log("Error LoggedIn");}else{localStorage.setItem("loggedIn", "false");}
     localStorage.setItem("vid", "1");
     localStorage.setItem("titel", "Bürgerservice");
     localStorage.setItem("color", "#506de2");

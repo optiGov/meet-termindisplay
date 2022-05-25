@@ -67,6 +67,7 @@ export default {
       refreshToken: localStorage.getItem("oauthRefreshToken"),
       expireDate: localStorage.getItem("oauthExpireDate"),
       componentKey: 0,
+      loggedIn: localStorage.getItem("loggedIn"),
     };
   },
   methods: {
@@ -86,7 +87,7 @@ export default {
         moment(this.expireDate).format("YYYY-MM-DD, HH:mm:ss")
       ) {
         //Wenn Token nicht gültig, dann neuen Token generieren
-        Store.mutations.setLoggedIn("false");
+        Store.mutations.setLoggedIn("");
 
         // get tokens by oauth code
         const response = await axios.post(window.config.oauth.endpoints.token, {
@@ -102,8 +103,12 @@ export default {
           .format("YYYY-MM-DD, HH:mm:ss"); //Ablaufdatum setzen und speichern
 
         Store.mutations.setOAuthAccessToken(accesstoken);
+        this.accessToken = accesstoken;
         Store.mutations.setOAuthRefreshToken(refreshtoken);
+        this.refreshToken = refreshtoken;
         Store.mutations.setOAuthExpireDate(expiredate);
+        this.expireDate = expiredate;
+        
         this.forceRerender();
       } else {
         if (this.expireDate === "") {
@@ -149,6 +154,7 @@ export default {
             headers: { Authorization: `Bearer ${this.accessToken}` },
           });
           this.termin = result.data.data.alleTerminvereinbarungen;
+          Store.mutations.setLoggedIn("true");
         } //if empty
       } // if expired
     },
