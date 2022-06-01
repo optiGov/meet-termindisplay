@@ -49,8 +49,12 @@
   >
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
-        <div class="modal-header bg-optigov text-white">
-          <h5 class="modal-title" id="staticBackdropLabel">Einstellungen</h5>
+        <div
+          class="modal-header bg-optigov text-white"
+          :style="{ background: getColor }"
+        >
+          <h5 class="modal-title" id="staticBackdropLabel"
+          :style="{ color: getTextColor }">Einstellungen</h5>
           <button
             type="button"
             class="btn-close btn-close-white"
@@ -60,120 +64,130 @@
         </div>
         <div class="modal-body">
           <form>
-            <p>
               <button
                 type="button"
-                class="btn btn-light w-100 border"
+                class="btn btn-light btn-lg w-100 border"
                 @click="authApp()"
                 v-if="!loggedIn || !loggedIn.length"
               >
-                OptiGov-Authentifizierung
+                OptiGov-Authentifizierung starten
               </button>
-              <strong>Auth-Status: {{ loggedIn }}</strong>
-            </p>
-            <div class="form-floating mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="floatingInput"
-                placeholder="ID"
-                v-model="vid"
-              />
-              <label for="floatingInput">ID der Verwaltung</label>
-            </div>
-            <div class="form-floating mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="floatingInput"
-                placeholder="Eingang"
-                v-model="titel"
-              />
-              <label for="floatingInput">Titel des Displays</label>
-            </div>
+              <!-- <button
+                type="button"
+                class="btn bg-optigov text-white disabled w-100 border"
+                v-if="loggedIn"
+              >
+                Erfolgreich authentifiziert
+              </button>
+            <strong>Auth-Status: {{ loggedIn }}</strong>-->
 
-            <div class="form-floating">
+            <div v-if="loggedIn">
+              <div class="form-floating mb-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="floatingInput"
+                  placeholder="ID"
+                  v-model="vid"
+                />
+                <label for="floatingInput">ID der Verwaltung</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="floatingInput"
+                  placeholder="Eingang"
+                  v-model="titel"
+                />
+                <label for="floatingInput">Titel des Displays</label>
+              </div>
+
+              <div class="form-floating">
+                <select
+                  class="form-select"
+                  id="floatingSelect"
+                  aria-label="Floating label select example"
+                  v-model="number"
+                >
+                  <option v-for="index in 20" :key="index" v-bind:value="index">
+                    {{ index }}
+                  </option>
+                </select>
+                <label for="floatingSelect">Anzahl an Terminen</label>
+              </div>
+              <br />
+              <div class="form-floating">
+                <select
+                  class="form-select"
+                  id="floatingSelect"
+                  aria-label="Floating label select example"
+                  v-model="textSize"
+                >
+                  <option value="1.0">Stufe 1</option>
+                  <option value="1.5">Stufe 2</option>
+                  <option value="2.0">Stufe 3</option>
+                  <option value="2.5">Stufe 4</option>
+                </select>
+                <label for="floatingSelect">Schriftgröße auswählen</label>
+              </div>
+              <br />
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="exampleColorInput" class="form-label float-start"
+                    >Hintergrundfarbe auswählen</label
+                  >
+                  <input
+                    type="color"
+                    class="form-control form-control-color w-100"
+                    id="exampleColorInput"
+                    title="Wähle eine Hintergrundfarbe aus"
+                    v-model="color"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="exampleColorInput" class="form-label float-start"
+                    >Textfarbe auswählen</label
+                  >
+                  <input
+                    type="color"
+                    class="form-control form-control-color w-100"
+                    id="exampleColorInput"
+                    title="Wähle eine Textfarbe aus"
+                    v-model="textColor"
+                  />
+                </div>
+              </div>
+
+              <br />
+              <label for="ColorInput" class="form-label float-start"
+                >Auswahl der Mitarbeiter
+                <!--{{ staff }}--></label
+              >
               <select
                 class="form-select"
-                id="floatingSelect"
-                aria-label="Floating label select example"
-                v-model="number"
+                multiple
+                aria-label="multiple select example"
+                v-model="staff"
               >
-                <option v-for="index in 20" :key="index" v-bind:value="index">
-                  {{ index }}
+                <option
+                  v-for="item in mitarbeiter"
+                  :key="item.id"
+                  v-bind:value="item.id"
+                >
+                  {{ item.anrede.name }} {{ item.vorname }} {{ item.nachname }}
                 </option>
               </select>
-              <label for="floatingSelect">Anzahl an Terminen</label>
             </div>
-            <br />
-            <div class="form-floating">
-              <select
-                class="form-select"
-                id="floatingSelect"
-                aria-label="Floating label select example"
-                v-model="textSize"
-              >
-                <option value="1.0">Stufe 1</option>
-                <option value="1.5">Stufe 2</option>
-                <option value="2.0">Stufe 3</option>
-                <option value="2.5">Stufe 4</option>
-              </select>
-              <label for="floatingSelect">Schriftgröße auswählen</label>
-            </div>
-            <br />
-            <div class="row">
-              <div class="col-md-6">
-                <label for="exampleColorInput" class="form-label float-start"
-                  >Hintergrundfarbe auswählen</label
-                >
-                <input
-                  type="color"
-                  class="form-control form-control-color w-100"
-                  id="exampleColorInput"
-                  title="Wähle eine Hintergrundfarbe aus"
-                  v-model="color"
-                />
-              </div>
-              <div class="col-md-6">
-                <label for="exampleColorInput" class="form-label float-start"
-                  >Textfarbe auswählen</label
-                >
-                <input
-                  type="color"
-                  class="form-control form-control-color w-100"
-                  id="exampleColorInput"
-                  title="Wähle eine Textfarbe aus"
-                  v-model="textColor"
-                />
-              </div>
-            </div>
-
-            <br />
-            <label for="ColorInput" class="form-label float-start"
-              >Auswahl der Mitarbeiter
-              <!--{{ staff }}--></label
-            >
-            <select
-              class="form-select"
-              multiple
-              aria-label="multiple select example"
-              v-model="staff"
-            >
-              <option
-                v-for="item in mitarbeiter"
-                :key="item.id"
-                v-bind:value="item.id"
-              >
-                {{ item.anrede.name }} {{ item.vorname }} {{ item.nachname }}
-              </option>
-            </select>
           </form>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" v-if="loggedIn">
           <button
             type="button"
             class="btn bg-optigov btn-lg w-100 text-white"
+            :style="{ color: getTextColor, background: getColor }"
             @click="storeSettings()"
+            v-if="loggedIn"
           >
             Speichern
           </button>
@@ -190,59 +204,33 @@ import moment from "moment";
 import "bootstrap/dist/js/bootstrap.min.js";
 import TermineList from "./components/TermineList.vue";
 import HeaderVue from "./components/HeaderVue.vue";
-import Str from "./Str";
-import Base64 from "./base64";
-import SHA256 from "./SHA256";
+import Str from "./js/Utils/Str";
+import Base64 from "./js/Utils/base64";
+import SHA256 from "./js/Utils/SHA256";
 
 export default {
   name: "App",
   data() {
     return {
       termin: [],
-      mitarbeiter: [],
-      url: localStorage.getItem("url"),
-      titel: localStorage.getItem("titel"),
+      mitarbeiter: JSON.parse(localStorage.getItem("mitarbeiter")),
+      url: Store.getters.getUrl(),
+      titel: Store.getters.getTitel(),
       staff: JSON.parse(localStorage.getItem("staff")),
-      vid: localStorage.getItem("vid"),
-      number: localStorage.getItem("number"),
-      color: localStorage.getItem("color"),
-      textColor: localStorage.getItem("textColor"),
-      textSize: localStorage.getItem("textSize"),
+      vid: Store.getters.getVid(),
+      number: Store.getters.getNumber(),
+      color: Store.getters.getColor(),
+      textColor: Store.getters.getTextColor(),
+      textSize: Store.getters.getTextSize(),
       componentKey: 0,
-      accessToken: localStorage.getItem("oauthAccessToken"),
-      refreshToken: localStorage.getItem("oauthRefreshToken"),
-      loggedIn: localStorage.getItem("loggedIn"),
+      accessToken: Store.getters.getOAuthAccessToken(),
+      refreshToken: Store.getters.getOAuthRefreshToken(),
+      loggedIn: Store.getters.getLoggedIn(),
     };
   },
   components: {
     TermineList,
     HeaderVue,
-  },
-  computed: {
-    getVid() {
-      return Store.getters.getVid();
-    },
-    getTitel() {
-      return Store.getters.getTitel();
-    },
-    getUrl() {
-      return Store.getters.getUrl();
-    },
-    getNumber() {
-      return Store.getters.getNumber();
-    },
-    getColor() {
-      return Store.getters.getColor();
-    },
-    getTextColor() {
-      return Store.getters.getTextColor();
-    },
-    getTextSize() {
-      return Store.getters.getTextSize();
-    },
-    getStaff() {
-      return Store.getters.getStaff();
-    },
   },
   methods: {
     async getParams() {
@@ -262,9 +250,10 @@ export default {
         //Wenn die Daten passen dann POST-Request an die Token-URL senden
         // check if state is equal the stored state
         if (getstate === vglstate) {
-
           // destroy state
           Store.mutations.setOAuthState("");
+          Store.mutations.setStaff("");
+          this.termin = "";
 
           // load code verifier
           const codeVerifier = Store.getters.getOAuthCodeVerifier();
@@ -296,10 +285,11 @@ export default {
           Store.mutations.setOAuthExpireDate(expiredate);
           Store.mutations.setLoggedIn("true");
           this.loggedIn = "true";
+          this.getMa(this.vid);
           console.log(this.loggedIn);
 
           this.forceRerender();
-        } 
+        }
       } // Ende if empty
     },
     //Authentificationprocess on OptiGov
@@ -347,7 +337,9 @@ export default {
     //Daten aus dem Formular speichern
     storeSettings() {
       //Mitarbeiterdaten aktualisieren
-      this.getMa();
+      this.getMa(this.vid);
+      //neue Daten abrufen
+      this.getParams();
       //TerminList-Component neuladen
       this.forceRerender();
       //Daten speichern
@@ -361,16 +353,17 @@ export default {
       Store.mutations.setStaff(this.staff);
       this.error = false;
     },
-    async getMa() {
-      try {
-        this.mitarbeiter = [];
-        var result = await axios({
-          method: "POST",
-          url: window.config.apiUrl,
-          data: {
-            query: `
+    async getMa(str) {
+      if (this.loggedIn) {
+        try {
+          this.mitarbeiter = [];
+          var result = await axios({
+            method: "POST",
+            url: window.config.apiUrl,
+            data: {
+              query: `
               {
-              verwaltung(id: ${this.vid}) {
+              verwaltung(id: ${str}) {
                 id
                 name
                 mitarbeiter {
@@ -385,35 +378,32 @@ export default {
                 }
               }
             } `,
-          },
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        });
-        this.mitarbeiter = result.data.data.verwaltung.mitarbeiter;
-        //console.log(result);
-        //console.log(this.termin);
-      } catch (error) {
-        //console.error(error);
+            },
+            headers: { Authorization: `Bearer ${this.accessToken}` },
+          });
+          this.mitarbeiter = result.data.data.verwaltung.mitarbeiter;
+          Store.mutations.setMitarbeiter(this.mitarbeiter);
+          //console.log(result);
+          //console.log(this.termin);
+        } catch (error) {
+          Store.mutations.setStaff("");
+          //console.error(error);
+        }
       }
     },
   },
-  beforeCreate() {
-    //Initial
-    localStorage.setItem("vid", "1");
-    localStorage.setItem("titel", "Bürgerservice");
-    localStorage.setItem("color", "#506de2");
-    localStorage.setItem("textColor", "#FFFFFF");
-    localStorage.setItem("textSize", "2.0");
-    localStorage.setItem("number", "5");
-    this.textColor = "#FFFFFF";
-    this.textSize = "2.0";
-    this.color = "#506de2";
-    this.number = "5";
-    this.titel = "Bürgerservice";
-    this.vid = "1";
+  computed: {
+    getColor() {
+      return Store.getters.getColor();
+    },
+    getTextColor() {
+      return Store.getters.getTextColor();
+    },
   },
   mounted() {
     //Daten zu Beginn abfragen
-    this.getMa();
+    //if auth ok
+    this.getMa(this.vid);
     this.getParams();
   },
 };

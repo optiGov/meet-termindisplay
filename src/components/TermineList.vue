@@ -3,7 +3,7 @@
     name="list"
     tag="ul"
     class="list-group list-group-striped rounded-0"
-  >
+    v-if="termin"  >
     <li
       class="list-group-item text-start p-5"
       v-for="item in sortedTermins"
@@ -82,10 +82,12 @@ export default {
     },
     //Daten aus der API abholen und speichern
     async getData() {
+      //console.log("----- Neue Daten angefordert");
       if (
         moment(new Date()).format("YYYY-MM-DD, HH:mm:ss") >=
         moment(this.expireDate).format("YYYY-MM-DD, HH:mm:ss")
       ) {
+        //console.log("------- Token nicht mehr gültig");
         //Wenn Token nicht gültig, dann neuen Token generieren
         Store.mutations.setLoggedIn("");
 
@@ -108,12 +110,16 @@ export default {
         this.refreshToken = refreshtoken;
         Store.mutations.setOAuthExpireDate(expiredate);
         this.expireDate = expiredate;
-        
+
         this.forceRerender();
+        this.getData();
       } else {
-        if (this.expireDate === "") {
+        if (this.expireDate === "" || this.expireDate == null) {
           console.log("expireDate empty");
         } else {
+          //console.log("----- Token noch gültig, Daten abholen");
+          //console.log(this.expireDate);
+          try {
           //Wenn Token noch gültig dann Daten abholen
           this.termin = [];
           var result = await axios({
@@ -155,6 +161,9 @@ export default {
           });
           this.termin = result.data.data.alleTerminvereinbarungen;
           Store.mutations.setLoggedIn("true");
+          } catch (error) {
+          this.termin = "";
+          }
         } //if empty
       } // if expired
     },
@@ -191,14 +200,14 @@ export default {
               //Nur die Termine von den ausgewählten Mitarbeitern ausgeben
               return this.getStaff.includes(el.mitarbeiter.id);
             })
-            //Anzahl an Terminen anzeigen
-            .slice(0, Store.getters.getNumber())
             //Daten sortiert nach Uhrzeit anzeigen
             .sort((a, b) => {
               return new Date(a.termin) - new Date(b.termin);
             })
+            //Anzahl an Terminen anzeigen
+            .slice(0, Store.getters.getNumber())
         );
-      }//Ende if empty
+      } //Ende if empty
     },
     //Hintergrundfarbe auslesen
     getColor() {
@@ -222,7 +231,6 @@ export default {
     setInterval(
       function () {
         this.getData();
-        this.sortedTermins();
       }.bind(this),
       300000
     );

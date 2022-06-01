@@ -20,7 +20,8 @@ window.config = {
 const state = reactive({
   titel: localStorage.getItem("titel"),
   url: window.config.apiUrl,
-  staff: [],
+  staff: localStorage.getItem("staff"),
+  mitarbeiter: localStorage.getItem("mitarbeiter"),
   vid: localStorage.getItem("vid"),
   number: localStorage.getItem("number"),
   color: localStorage.getItem("color"),
@@ -36,20 +37,15 @@ const state = reactive({
  });
 
 const getters = {
-  getTitel: () => state.titel,
-  getUrl: () => state.url,
-  getVid: () => state.vid,
-  getNumber: () => state.number,
-  getColor: () => state.color,
-  getTextColor: () => state.textColor,
-  getTextSize: () => state.textSize,
-  getStaff() {
-    if (localStorage.getItem("staff") === "") {
-      return
-    } else {
-      return JSON.parse(localStorage.getItem("staff"));
-    }
-  },
+  getTitel: () => state.titel ?? "Bürgerservice",
+  getUrl: () => state.url, //brauch ich die noch?
+  getVid: () => state.vid ?? "1",
+  getNumber: () => state.number ?? "5",
+  getColor: () => state.color ?? "#506de2",
+  getTextColor: () => state.textColor ?? "#FFFFFF",
+  getTextSize: () => state.textSize ?? "2.0",
+  getStaff: () => state.staff,
+  getMitarbeiter: () => state.mitarbeiter,
   //for oAuth
   getOAuthState: () => state.oauthState,
   getOAuthCodeVerifier: () => state.oauthCodeVerifier,
@@ -91,6 +87,10 @@ const mutations = {
   setStaff(name) {
     localStorage.setItem("staff", JSON.stringify(name));
     state.staff = name;
+  },
+  setMitarbeiter(name) {
+    localStorage.setItem("mitarbeiter", JSON.stringify(name));
+    state.mitarbeiter = name;
   },
   //for OAuth
   setOAuthState(name) {
